@@ -2,50 +2,49 @@ from Stocks import StockData
 from prettytable import PrettyTable
 
 class Portfolio():
+    totalDayGain = 0
+    totalGain = 0
+
     def __init__(self, owner, stocks) -> None:
         self.owner = owner
         self.stocks = stocks
         self.tickers = {stock.ticker for stock in stocks}
+        self.createTable()
         super().__init__()
 
     def __str__(self) -> str:
         result = []
         result.append(f'{self.owner} Portfolio')
-        for stock in self.stocks:
-            result.append(str(stock))
+        result.append(self.display())
         return '\n'.join(result)
 
-    def calculateChange(self, currentPrice, priceAtStart, amount):
-        change = currentPrice - priceAtStart 
-        gain = change * amount
-        percentGain = change / priceAtStart * 100
-        return gain, percentGain
+    def createTable(self):
+        table = PrettyTable()
+        table.field_names = ['Ticker', 'Current', 'Cost', 'Amount', 'Day Gain', '% Day', 'Total Gain', '% Total']
+        table.align = 'r'
+        table.align['Ticker'] = 'l'
+        table.float_format = '.2'
+        table.float_format['Gain'] = '.'
+        self.prettyTable = table
 
     def updatePrices(self):
         stockData = StockData()
         currentPrices = stockData.getCurrentPrices(self.tickers)
         closingPrices = stockData.getPreviousClosingPrices(self.tickers)
-
-        table = PrettyTable()
-        table.field_names = ['Ticker', 'Current', 'Cost', 'Amount', 'Gain', '% Day', '% Total']
-        totalDayGain = 0
-        totalOverallGain = 0
         for stock in self.stocks:
-            currentPrice = currentPrices[stock.ticker]
-            closingPrice = closingPrices[stock.ticker]
-            buyPrice = stock.buyPrice
+            stock.currentPrice = currentPrices[stock.ticker]
+            stock.closingPrice = closingPrices[stock.ticker]
+            self.totalDayGain += stock.dayGain
+            self.totalGain += stock.totalGain
 
-            dayGain, dayGainPercent = self.calculateChange(currentPrice, closingPrice, stock.amount)
-            totalGain, totalGainPercent = self.calculateChange(currentPrice, buyPrice, stock.amount)
-            table.add_row([stock.ticker, currentPrice, buyPrice, stock.amount, dayGain, dayGainPercent, totalGainPercent])
+    def display(self):
+        self.prettyTable.clear_rows()
+        for stock in self.stocks:
+            self.prettyTable.add_row([stock.ticker, stock.currentPrice, stock.buyPrice, stock.amount, stock.dayGain, stock.dayGainPercent, stock.totalGain, stock.totalGainPercent])
 
-            totalDayGain += dayGain
-            totalOverallGain += totalGain
-        print(f'Day Gain:   {totalDayGain:>7,.0f}')
-        print(f'Total Gain: {totalOverallGain:>7,.0f}')
-        print()
-        table.align = 'r'
-        table.align['Ticker'] = 'l'
-        table.float_format = '.2'
-        table.float_format['Gain'] = '.'
-        print(table)
+        result = []
+        result.append(self.prettyTable.get_string())
+        result.append('')
+        result.append(f'Day Gain:   {self.totalDayGain:>7,.0f}')
+        result.append(f'Total Gain: {self.totalGain:>7,.0f}')
+        return '\n'.join(result)        

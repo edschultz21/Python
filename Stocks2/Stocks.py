@@ -5,6 +5,9 @@ from datetime import timedelta
 import pandas as pd
 
 class Stock():
+    currentPrice = 0.0
+    closingPrice = 0.0
+
     def __init__(self, ticker, buyDate, buyPrice, amount, account) -> None:
         self.ticker = ticker
         self.buyDate = buyDate
@@ -14,7 +17,27 @@ class Stock():
         super().__init__()
 
     def __str__(self) -> str:
-        return f'{self.ticker:<4}  {self.buyDate}  {self.buyPrice:>7.2f}  {self.amount:>4}'
+        return f'{self.ticker:<4}  {self.buyDate}  {self.buyPrice:>7.2f}  {self.amount:>4}, Cur: {self.currentPrice:>7.2f}, Close: {self.closingPrice:>7.2f}'
+
+    @property
+    def dayGain(self):
+        change = self.currentPrice - self.closingPrice
+        return change * self.amount
+
+    @property
+    def dayGainPercent(self):
+        change = self.currentPrice - self.closingPrice
+        return change / self.closingPrice * 100
+
+    @property
+    def totalGain(self):
+        change = self.currentPrice - self.buyPrice
+        return change * self.amount
+
+    @property
+    def totalGainPercent(self):
+        change = self.currentPrice - self.buyPrice
+        return change / self.buyPrice * 100
 
 class StockData():
     def getCurrentPrice(self, ticker):

@@ -18,8 +18,7 @@ def creatPortfolio():
     return Portfolio('Dads', stocks)
 
 portfolio = creatPortfolio()
-print(portfolio)
-print()
 portfolio.updatePrices()
+print(portfolio)
 
 
